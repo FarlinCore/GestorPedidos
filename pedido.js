@@ -1,6 +1,6 @@
 const estados = ['Creado'];
 const pedidos = [];
-const repartidores = [];
+const repartidores = [];``
 
 export function crearPedido(pedidos, Cliente, Direccion){
     const pedido = {
@@ -14,3 +14,4 @@ export function crearPedido(pedidos, Cliente, Direccion){
     pedidos.push(pedido);
     return pedido;
 }
+
