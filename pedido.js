@@ -16,3 +16,11 @@ export function crearPedido(pedidos, Cliente, Direccion){
     return pedido;
 }
 
+export function agregarRepartidor(repartidores, nombre){
+
+    if(nombre.trim()===""){
+        return repartidores
+    }
+    repartidores.push(nombre.trim());
+    return repartidores
+}
