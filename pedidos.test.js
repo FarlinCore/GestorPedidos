@@ -42,5 +42,3 @@ test('No debe agregar un nombre vacío', () => {
 
     assert.deepEqual(resultado, ['Carlos Perez']);
 });
-
-
