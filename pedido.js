@@ -2,6 +2,7 @@ const estados = ['Creado'];
 const repartidores = [];
 const pedidos = [];
 
+//LOGICA DEL ID
 function calcularSiguienteId(pedidos) {
     return pedidos.length + 1;
   }
