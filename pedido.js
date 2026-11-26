@@ -43,19 +43,4 @@ export function crearPedido(listaPedidos, Cliente, Direccion) {
     return nuevoPedido;
 }
 
-function asignar(id, indice) {
-    const pedido = pedidos.find(p => p.id === id);
-    if (indice === "") return;
-    pedido.repartidor = repartidores[indice];
-    if (pedido.estado === 0) pedido.estado = 1; // al asignar pasa a "Asignado"
-    render();
-  }
-  
-  function agregarRepartidor() {
-    const input = document.getElementById("nombreRepartidor");
-    if (input.value.trim() === "") return;
-    repartidores.push(input.value.trim());
-    input.value = "";
-    render();
-  }
   
