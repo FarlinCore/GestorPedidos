@@ -1,24 +1,28 @@
-
 const estados = ['Creado'];
-const pedidos = [];
 const repartidores = [];
+const pedidos = [];
+
+//LOGICA DEL ID
+function calcularSiguienteId(pedidos) {
+    return pedidos.length + 1;
+  }
 
 export function crearPedido(pedidos, Cliente, Direccion){
     const pedido = {
-        id: pedidos.length + 1,
-        Cliente: Cliente,
-        Direccion: Direccion,
+        id: calcularSiguienteId(pedidos),
+        Cliente: Cliente.trim(),
+        Direccion: Direccion.trim(),
         estado: estados[0],
         repartidor: null
     }
-
     pedidos.push(pedido);
     return pedido;
 }
 export function agregarRepartidor(repartidores, nombre){
-    if (!nombre || !nombre.trim()){
+    const nombrelimpio = nombre?.trim();
+    if (!nombrelimpio){
         return repartidores;
     }
-    repartidores.push(nombre.trim());
+    repartidores.push(nombrelimpio);
     return repartidores;
 }
