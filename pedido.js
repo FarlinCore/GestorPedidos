@@ -43,4 +43,12 @@ export function crearPedido(listaPedidos, Cliente, Direccion) {
     return nuevoPedido;
 }
 
+export function agregarRepartidor(repartidores, nombre){
+    const nombrelimpio = nombre?.trim();
+    if (!nombrelimpio){
+        return repartidores;
+    }
+    repartidores.push(nombrelimpio);
+    return repartidores;
+}
   
