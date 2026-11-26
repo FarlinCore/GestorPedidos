@@ -1,23 +1,12 @@
-const estados = ['Creado'];
+const ESTADOS_PEDIDO = Object.freeze({
+    CREADO: "Creado",
+    ASIGNADO: "Asignado",
+    EN_CAMINO: "En camino",
+    ENTREGADO: "Entregado",
+});
 const repartidores = [];
 const pedidos = [];
 
-//LOGICA DEL ID
-function calcularSiguienteId(pedidos) {
-    return pedidos.length + 1;
-  }
-
-export function crearPedido(pedidos, Cliente, Direccion){
-    const pedido = {
-        id: calcularSiguienteId(pedidos),
-        Cliente: Cliente.trim(),
-        Direccion: Direccion.trim(),
-        estado: estados[0],
-        repartidor: null
-    }
-    pedidos.push(pedido);
-    return pedido;
-}
 export function agregarRepartidor(repartidores, nombre){
     const nombrelimpio = nombre?.trim();
     if (!nombrelimpio){
@@ -27,3 +16,41 @@ export function agregarRepartidor(repartidores, nombre){
     return repartidores;
 }
 
+function normalizarTextoRequerido(valor, etiqueta) {
+    if (typeof valor !== "string" || valor.trim() === "") {
+        throw new Error(`${etiqueta} es obligatorio.`);
+    }
+
+    return valor.trim();
+}
+
+function obtenerSiguienteId(listaPedidos) {
+    if (listaPedidos.length === 0) {
+        return 1;
+    }
+
+    const ultimoId = listaPedidos.reduce(
+        (maxId, pedido) => (pedido.id > maxId ? pedido.id : maxId),
+        0
+    );
+
+    return ultimoId + 1;
+}
+
+export function crearPedido(listaPedidos, Cliente, Direccion) {
+    const clienteLimpio = normalizarTextoRequerido(Cliente, "El cliente");
+    const direccionLimpia = normalizarTextoRequerido(Direccion, "La dirección");
+
+    const nuevoPedido = {
+        id: obtenerSiguienteId(listaPedidos),
+        Cliente: clienteLimpio,
+        Direccion: direccionLimpia,
+        estado: ESTADOS_PEDIDO.CREADO,
+        repartidor: null,
+    };
+
+    listaPedidos.push(nuevoPedido);
+    return nuevoPedido;
+}
+
+  
