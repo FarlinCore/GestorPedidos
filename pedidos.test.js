@@ -14,3 +14,31 @@ describe('crearPedido', () => {
     assert.equal(pedidos.length, 1);
   });
 });
+
+test('Debe agregar un nuevo repartidor', () => {
+    const repartidores = ['Carlos Perez', 'Ana Marte'];
+
+
+    const resultado = agregarRepartidor(
+        repartidores,
+        'Luis Gomez'
+    );
+
+
+    assert.deepEqual(resultado, [
+        'Carlos Perez',
+        'Ana Marte',
+        'Luis Gomez'
+    ]);
+});
+
+
+test('No debe agregar un nombre vacío', () => {
+    const repartidores = ['Carlos Perez'];
+
+
+    const resultado = agregarRepartidor(repartidores, '   ');
+
+
+    assert.deepEqual(resultado, ['Carlos Perez']);
+});
