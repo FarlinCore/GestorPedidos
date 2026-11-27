@@ -20,10 +20,10 @@
         <div class="card-body">
           <h2 class="h5">Repartidores</h2>
           <ul id="listaRepartidores" class="list-group list-group-flush mb-3"></ul>
-          <!-- <div class="input-group">
+          <div class="input-group">
             <input id="nombreRepartidor" class="form-control" placeholder="nombre">
             <button class="btn btn-primary" onclick="agregarRepartidor()">Agregar</button>
-          </div> -->
+          </div>
         </div>
       </div>
     </div>
@@ -80,3 +80,162 @@
     </div>
   </div>
 </div>
+<script>
+
+  const ESTADOS_PEDIDO = Object.freeze({
+      CREADO: "Creado",
+      ASIGNADO: "Asignado",
+      EN_CAMINO: "En camino",
+      ENTREGADO: "Entregado",
+    });
+
+    const pedidos = [];
+    const repartidores = [];
+
+    function normalizarTextoRequerido(valor, etiqueta) {
+      if (typeof valor !== "string" || valor.trim() === "") {
+        throw new Error(`${etiqueta} es obligatorio.`);
+      }
+
+      return valor.trim();
+    }
+
+    function obtenerSiguienteId(listaPedidos) {
+      if (listaPedidos.length === 0) {
+        return 1;
+      }
+
+      const ultimoId = listaPedidos.reduce(
+        (maxId, pedido) => (pedido.id > maxId ? pedido.id : maxId),
+        0
+      );
+
+      return ultimoId + 1;
+    }
+
+    function buscarPedido(pedidos, id) {
+      return pedidos.find(p => p.id === id);
+  }
+  
+  
+  
+function formatoMoneda(valor) {
+      return "RD$ " + valor.toFixed(2);
+  }
+  
+function normalizarCosto(costo) {
+      return Math.max(0, parseFloat(costo) || 0);
+  }
+  
+
+  function renderizarTodo() {
+    const lista = document.getElementById("listaRepartidores");
+    const tabla = document.getElementById("tablaPedidos");
+    const total = document.getElementById("totalEnvios");
+
+    lista.replaceChildren();
+    repartidores.forEach(repartidor => {
+      const elemento = document.createElement("li");
+      elemento.className = "list-group-item";
+      elemento.textContent = repartidor;
+      lista.appendChild(elemento);
+    });
+
+    tabla.replaceChildren();
+    pedidos.forEach(p => {
+      const fila = document.createElement("tr");
+
+      const cliente = document.createElement("td");
+      cliente.textContent = p.Cliente;
+      fila.appendChild(cliente);
+
+      const direccion = document.createElement("td");
+      direccion.textContent = p.Direccion;
+      fila.appendChild(direccion);
+
+      const estado = document.createElement("td");
+      estado.textContent = p.estado;
+      fila.appendChild(estado);
+
+      const repartidor = document.createElement("td");
+      const selector = document.createElement("select");
+      selector.id = `rep-${p.id}`;
+      selector.className = "form-select";
+      repartidores.forEach(nombre => {
+        const opcion = document.createElement("option");
+        opcion.value = nombre;
+        opcion.textContent = nombre;
+        opcion.selected = nombre === p.repartidor;
+        selector.appendChild(opcion);
+      });
+      repartidor.appendChild(selector);
+      fila.appendChild(repartidor);
+
+      const costo = document.createElement("td");
+      costo.textContent = formatoMoneda(p.Costo);
+      fila.appendChild(costo);
+
+      const acciones = document.createElement("td");
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.className = "btn btn-primary";
+      boton.textContent = "Asignar";
+      boton.addEventListener("click", () => {
+        asignarPedido(pedidos, p.id, selector.value);
+      });
+      acciones.appendChild(boton);
+      fila.appendChild(acciones);
+
+      tabla.appendChild(fila);
+    });
+
+    const sumaCostos = pedidos.reduce((suma, p) => suma + p.Costo, 0);
+    total.textContent = formatoMoneda(sumaCostos);
+  }
+
+  function crearPedido(listaPedidos = pedidos, Cliente = document.getElementById("cliente").value, Direccion = document.getElementById("direccion").value, Costo = document.getElementById("costo").value) {
+    const clienteLimpio = normalizarTextoRequerido(Cliente, "El cliente");
+    const direccionLimpia = normalizarTextoRequerido(Direccion, "La dirección");
+   const costoLimpio = normalizarCosto(Costo);
+
+    const nuevoPedido = {
+        id: obtenerSiguienteId(listaPedidos),
+        Cliente: clienteLimpio,
+        Direccion: direccionLimpia,
+        Costo: costoLimpio,
+        estado: ESTADOS_PEDIDO.CREADO,
+        repartidor: null,
+    };
+
+    listaPedidos.push(nuevoPedido);
+    document.getElementById("cliente").value = "";
+    document.getElementById("direccion").value = "";
+    document.getElementById("costo").value = "";
+    renderizarTodo();
+    return nuevoPedido;
+}
+
+    function agregarRepartidor(listaRepartidores = repartidores, nombre = document.getElementById("nombreRepartidor").value) {
+      const nombrelimpio = nombre?.trim();
+      if (!nombrelimpio) {
+        return listaRepartidores;
+      }
+      listaRepartidores.push(nombrelimpio);
+      document.getElementById("nombreRepartidor").value = "";
+      renderizarTodo();
+      return listaRepartidores;
+    }
+  
+  
+  //Asignar pedido a un repartidor
+  function asignarPedido(listaPedidos = pedidos, idPedido, repartidor) {
+      const pedido = buscarPedido(listaPedidos, idPedido);
+      pedido.repartidor = repartidor;
+      pedido.estado = ESTADOS_PEDIDO.ASIGNADO;
+      renderizarTodo();
+      return pedido;
+  }
+
+  renderizarTodo();
+
+</script>
