@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>sistema de pedidos</title>
-  <!-- Bootstrap por CDN: no hay que instalar nada -->
+  <!-- Bootstrap aporta los estilos y el diseño responsivo desde Internet -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
@@ -14,7 +14,7 @@
 
   <div class="row g-4">
 
-    <!-- Columna izquierda: repartidores -->
+    <!-- Sección izquierda: aquí se agregan y muestran los repartidores -->
     <div class="col-md-4">
       <div class="card">
         <div class="card-body">
@@ -28,8 +28,9 @@
       </div>
     </div>
 
-    <!-- Columna derecha: pedidos -->
+    <!-- Sección derecha: desde aquí se crean los pedidos y se revisan en la tabla -->
     <div class="col-md-8">
+      <!-- Formulario para ingresar los datos de un pedido nuevo -->
       <div class="card mb-4">
         <div class="card-body">
           <h2 class="h5">PEDIDOS</h2>
@@ -50,6 +51,7 @@
         </div>
       </div>
 
+      <!-- Tabla que muestra todos los pedidos y permite asignar un repartidor -->
       <div class="card">
         <div class="card-body">
           <h2 class="h5">PEDIDOS</h2>
@@ -82,6 +84,7 @@
 </div>
 <script>
 
+  // Lista de estados por los que puede pasar un pedido
   const ESTADOS_PEDIDO = Object.freeze({
       CREADO: "Creado",
       ASIGNADO: "Asignado",
@@ -89,9 +92,14 @@
       ENTREGADO: "Entregado",
     });
 
+     const estados = Object.values(ESTADOS_PEDIDO);
+
+
+    // Aquí se guardan los pedidos y repartidores mientras la página está abierta
     const pedidos = [];
     const repartidores = [];
 
+    // Revisa que un texto no esté vacío y elimina espacios sobrantes
     function normalizarTextoRequerido(valor, etiqueta) {
       if (typeof valor !== "string" || valor.trim() === "") {
         throw new Error(`${etiqueta} es obligatorio.`);
@@ -100,6 +108,7 @@
       return valor.trim();
     }
 
+    // Calcula el número que debe tener el siguiente pedido
     function obtenerSiguienteId(listaPedidos) {
       if (listaPedidos.length === 0) {
         return 1;
@@ -113,21 +122,25 @@
       return ultimoId + 1;
     }
 
+    // Busca un pedido por su número de identificación
     function buscarPedido(pedidos, id) {
       return pedidos.find(p => p.id === id);
   }
   
   
   
+// Convierte un número en el formato de dinero usado en la tabla
 function formatoMoneda(valor) {
       return "RD$ " + valor.toFixed(2);
   }
   
+// Convierte el costo a número y evita que sea menor que cero
 function normalizarCosto(costo) {
       return Math.max(0, parseFloat(costo) || 0);
   }
   
 
+  // Vuelve a dibujar las listas y la tabla cuando cambian los datos
   function renderizarTodo() {
     const lista = document.getElementById("listaRepartidores");
     const tabla = document.getElementById("tablaPedidos");
@@ -168,6 +181,8 @@ function normalizarCosto(costo) {
         opcion.selected = nombre === p.repartidor;
         selector.appendChild(opcion);
       });
+      // Evita cambiar el repartidor después de hacer la asignación
+      if (p.repartidor) selector.disabled = true;
       repartidor.appendChild(selector);
       fila.appendChild(repartidor);
 
@@ -179,9 +194,22 @@ function normalizarCosto(costo) {
       const boton = document.createElement("button");
       boton.type = "button";
       boton.className = "btn btn-primary";
-      boton.textContent = "Asignar";
+
+      // Antes de asignar muestra "Asignar"; después permite avanzar el pedido
+      const pedidoAsignado = p.repartidor !== null;
+      boton.textContent = pedidoAsignado ? "Avanzar" : "Asignar";
+
+      if (p.estado === ESTADOS_PEDIDO.ENTREGADO) {
+        boton.textContent = "Entregado";
+        boton.disabled = true;
+      }
+
       boton.addEventListener("click", () => {
-        asignarPedido(pedidos, p.id, selector.value);
+        if (pedidoAsignado) {
+          avanzar(p.id);
+        } else if (selector.value) {
+          asignarPedido(pedidos, p.id, selector.value);
+        }
       });
       acciones.appendChild(boton);
       fila.appendChild(acciones);
@@ -193,6 +221,7 @@ function normalizarCosto(costo) {
     total.textContent = formatoMoneda(sumaCostos);
   }
 
+  // Toma los datos del formulario y crea un pedido nuevo
   function crearPedido(listaPedidos = pedidos, Cliente = document.getElementById("cliente").value, Direccion = document.getElementById("direccion").value, Costo = document.getElementById("costo").value) {
     const clienteLimpio = normalizarTextoRequerido(Cliente, "El cliente");
     const direccionLimpia = normalizarTextoRequerido(Direccion, "La dirección");
@@ -215,6 +244,7 @@ function normalizarCosto(costo) {
     return nuevoPedido;
 }
 
+    // Guarda el nombre del repartidor si el campo no está vacío
     function agregarRepartidor(listaRepartidores = repartidores, nombre = document.getElementById("nombreRepartidor").value) {
       const nombrelimpio = nombre?.trim();
       if (!nombrelimpio) {
@@ -231,14 +261,43 @@ function normalizarCosto(costo) {
 
 
 
-  //Asignar pedido a un repartidor
+  // Asigna un pedido al repartidor seleccionado
   function asignarPedido(listaPedidos = pedidos, idPedido, repartidor) {
       const pedido = buscarPedido(listaPedidos, idPedido);
       pedido.repartidor = repartidor;
       pedido.estado = ESTADOS_PEDIDO.ASIGNADO;
       renderizarTodo();
       return pedido;
+      
   }
+
+
+  // Determina cuál es el siguiente estado según el progreso del pedido
+function obtenerSiguienteEstado(estadoActual) {
+  const indiceActual = estados.indexOf(estadoActual);
+  const esEstadoValido = indiceActual !== -1;
+  const esUltimoEstado = indiceActual === estados.length - 1;
+
+  if (!esEstadoValido || esUltimoEstado) return estadoActual;
+
+  return estados[indiceActual + 1];
+}
+
+
+// Avanza el estado de un pedido a la siguiente etapa
+function avanzar(id, listaPedidos = pedidos) {
+  const pedido = listaPedidos.find((p) => p.id === id);
+  if (!pedido) return undefined;
+
+  pedido.estado = obtenerSiguienteEstado(pedido.estado);
+
+  // Actualiza la tabla para mostrar el nuevo estado y el botón correspondiente
+  if (typeof renderizarTodo === "function") renderizarTodo();
+
+  return pedido;
+}
+
+
 
   renderizarTodo();
 
